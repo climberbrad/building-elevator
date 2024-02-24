@@ -9,6 +9,7 @@ const BUTTONS_PER_ROW = 4;
 
 interface ElevatorState {
     type: string;
+    status: string;
     currentFloor: number;
     destinations: number[];
     request: number | undefined;
@@ -16,11 +17,13 @@ interface ElevatorState {
 
 const DEFAULT_STATE: ElevatorState = {
     type: 'IDLE',
+    status: 'IDLE',
     currentFloor: 1,
     destinations: [],
     request: undefined,
 }
 
+// add a new stop to the destinations then make the closest floor the next stop
 const optimizeStops = (state: ElevatorState, newStop: number): number[] => {
 
     // add new request to the destination list
@@ -42,6 +45,7 @@ const optimizeStops = (state: ElevatorState, newStop: number): number[] => {
 }
 
 function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
+
     switch (action.type) {
         case 'FLOOR_REQUEST': {
             if (!action.request) return state;
@@ -49,16 +53,15 @@ function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
             // reshuffle the destination array so the closest stop is the first item
             const updatedDestinations: number[] = optimizeStops(state, action.request)
 
-            return {...state, request: 0, destinations: updatedDestinations};
+            return {...state, status: 'MOVING', request: 0, destinations: updatedDestinations};
         }
-        case 'ARRIVED': {
+        case 'MOVE': {
             const updatedDestinations: number[] = [...state.destinations]
             const currentFloor = updatedDestinations.splice(0, 1)
 
-            console.log('current floor', currentFloor)
+            if (currentFloor.length === 0) return state;
 
-            if(currentFloor.length === 0) return state;
-            return {...state, currentFloor: currentFloor[0], destinations: [...updatedDestinations]}
+            return {...state, status: updatedDestinations.length === 0 ? 'IDLE': 'MOVING', currentFloor: currentFloor[0], destinations: [...updatedDestinations]}
         }
         default: {
             return state;
@@ -69,21 +72,21 @@ function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
 export function ElevatorReducer() {
     const [state, dispatch] = useReducer(reducer, DEFAULT_STATE);
 
-    const sleep = async (delay: number) => new Promise((resolve) => setTimeout(resolve, delay))
-
+    // listen for destination changes and dispatch move events
     useEffect(() => {
-        const move = async () => {
-            if (state.destinations.length === 0) return
+        if (state.destinations.length === 0) return
 
-            await sleep(2000)
-            dispatch({...state, type: 'ARRIVED'})
-        }
+        const moveFloors = setTimeout(() => {
+            console.log('MOVING...', state.destinations)
+            dispatch({...state, type: 'MOVE'})
+        }, 1000)
+        return () => clearTimeout(moveFloors)
 
-        void move();
-    }, [state]);
+    }, [state.destinations]);
 
 
-    const handleClickButton = (floor: number) => {
+    // Add the request to the list of destination
+    const handleClickButton = async (floor: number) => {
         dispatch({...state, type: "FLOOR_REQUEST", request: floor});
     }
 
@@ -95,13 +98,21 @@ export function ElevatorReducer() {
         </Box>)
     }
 
+    const getWindowColor = (floor: number, windowIndex: number): string => {
+        if (state.type === 'ARRIVED'
+            && state.currentFloor === floor
+            && windowIndex === 3) return 'green';
+
+        return state.currentFloor === floor && windowIndex === 3 ? 'black' : 'white';
+    }
+
     const FloorWindows = ({floor}: { floor: number }): React.ReactElement => {
         return (<Box sx={{display: 'flex'}}>
             {Array(WINDOWS_PER_FLOOR).fill(null).map((_, index) =>
                 <Box key={index} sx={{margin: 1}}>
                     <Box sx={{
                         border: 1,
-                        backgroundColor: state.currentFloor === floor && index === 3 ? 'black' : 'white',
+                        backgroundColor: getWindowColor(floor, index),
                         height: 24,
                         width: 14
                     }}/>
@@ -165,6 +176,22 @@ export function ElevatorReducer() {
                 <Box>
                     <Box sx={{marginY: 2}}><Typography fontSize={24}>Press Me!</Typography></Box>
                     <ButtonPanel/>
+
+                    <Typography sx={{marginY: 2}}>
+                        Elevator status:
+                        <Typography component='span' sx={{
+                            color: 'black',
+                            backgroundColor: '#d8dce6',
+                            fontSize: 12,
+                            fontWeight: 'bold',
+                            paddingY: 1,
+                            paddingX: 2,
+                            marginX: 1,
+                            borderRadius: 3
+                        }}>
+                            {state.status}
+                        </Typography>
+                    </Typography>
                 </Box>
             </Box>
         </>
