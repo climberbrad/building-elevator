@@ -23,27 +23,35 @@ const DEFAULT_STATE: ElevatorState = {
     request: undefined,
 }
 
+// find the closest floor to the current floor without sort
+// const closest = updatedDestinations.reduce(function (prev, curr) {
+//     return (Math.abs(curr - state.currentFloor) < Math.abs(prev - state.currentFloor) ? curr : prev);
+// });
+
+// move 'closest' to the first item in the array
+// const closestIndex = updatedDestinations.indexOf(closest);
+// const moveItem = updatedDestinations.splice(closestIndex, 1)
+// updatedDestinations.splice(0, 0, moveItem[0])
+
+
+const compareNumbers = (a: number, b: number): number => {
+    return a - b;
+}
+
 // add a new stop to the destinations then make the closest floor the next stop
 const optimizeStops = (state: ElevatorState, newStop: number): number[] => {
 
     // add new request to the destination list
     const updatedDestinations = [...state.destinations, newStop];
+    if (updatedDestinations.length === 1) return updatedDestinations;
 
-    // find the closest floor to the current floor
-    if (updatedDestinations.length > 1) {
-        const closest = updatedDestinations.reduce(function (prev, curr) {
-            return (Math.abs(curr - state.currentFloor) < Math.abs(prev - state.currentFloor) ? curr : prev);
-        });
+    const orderedList = updatedDestinations.sort(compareNumbers)
+    console.log(orderedList)
 
-        // move 'closest' to the first item in the array
-        const closestIndex = updatedDestinations.indexOf(closest);
-        const moveItem = updatedDestinations.splice(closestIndex, 1)
-        updatedDestinations.splice(0, 0, moveItem[0])
-    }
-
-    return updatedDestinations;
+    return orderedList;
 }
 
+// state machine for elevator events
 function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
 
     switch (action.type) {
