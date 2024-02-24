@@ -29,11 +29,9 @@ function ElevatorUserState() {
         setFloorRequest(old => [...old, floor]);
 
         // move the elevator
-        console.log('moving to floor', floor, 'from', elevatorFloor);
         await sleep(500 * floorDelta);
         setElevatorFloor(floor);
-        console.log('arrived!', floor);
-        await sleep(3000); // let people off
+        await sleep(3000); // let people out
 
         setFloorRequest(old => [...old].filter(item => item !== floor));
     }

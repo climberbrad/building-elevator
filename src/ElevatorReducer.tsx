@@ -1,15 +1,15 @@
 import './App.css'
 import {Box, Button, Grid, Typography} from "@mui/material";
 import {useEffect, useReducer} from "react";
+import {ArrowUpCircleIcon, ArrowDownCircleIcon} from "@heroicons/react/20/solid";
 
 const NUM_FLOORS = 12;
 const WINDOWS_PER_FLOOR = 7;
-
 const BUTTONS_PER_ROW = 4;
 
 interface ElevatorState {
     type: string;
-    status: string;
+    direction: string;
     currentFloor: number;
     destinations: number[];
     request: number | undefined;
@@ -17,7 +17,7 @@ interface ElevatorState {
 
 const DEFAULT_STATE: ElevatorState = {
     type: 'IDLE',
-    status: 'IDLE',
+    direction: 'IDLE',
     currentFloor: 1,
     destinations: [],
     request: undefined,
@@ -53,15 +53,20 @@ function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
             // reshuffle the destination array so the closest stop is the first item
             const updatedDestinations: number[] = optimizeStops(state, action.request)
 
-            return {...state, status: 'MOVING', request: 0, destinations: updatedDestinations};
+            return {...state, request: 0, destinations: updatedDestinations};
         }
         case 'MOVE': {
             const updatedDestinations: number[] = [...state.destinations]
             const currentFloor = updatedDestinations.splice(0, 1)
 
-            if (currentFloor.length === 0) return state;
+            // if (currentFloor.length === 0) return state;
 
-            return {...state, status: updatedDestinations.length === 0 ? 'IDLE': 'MOVING', currentFloor: currentFloor[0], destinations: [...updatedDestinations]}
+            return {
+                ...state,
+                direction: state.currentFloor < currentFloor[0] ? 'UP' : 'DOWN',
+                currentFloor: currentFloor[0],
+                destinations: [...updatedDestinations]
+            }
         }
         default: {
             return state;
@@ -77,9 +82,8 @@ export function ElevatorReducer() {
         if (state.destinations.length === 0) return
 
         const moveFloors = setTimeout(() => {
-            console.log('MOVING...', state.destinations)
             dispatch({...state, type: 'MOVE'})
-        }, 1000)
+        }, 1000) // todo: change to floorDelta * 10
         return () => clearTimeout(moveFloors)
 
     }, [state.destinations]);
@@ -174,24 +178,12 @@ export function ElevatorReducer() {
                     <Building numFloors={NUM_FLOORS}/>
                 </Box>
                 <Box>
-                    <Box sx={{marginY: 2}}><Typography fontSize={24}>Press Me!</Typography></Box>
+                    <Typography marginY={2} fontSize={24}>Push my buttons!</Typography>
                     <ButtonPanel/>
-
-                    <Typography sx={{marginY: 2}}>
-                        Elevator status:
-                        <Typography component='span' sx={{
-                            color: 'black',
-                            backgroundColor: '#d8dce6',
-                            fontSize: 12,
-                            fontWeight: 'bold',
-                            paddingY: 1,
-                            paddingX: 2,
-                            marginX: 1,
-                            borderRadius: 3
-                        }}>
-                            {state.status}
-                        </Typography>
-                    </Typography>
+                    <Box sx={{display: 'flex', justifyContent: 'center', marginY: 2, gap: 1}}>
+                        <ArrowUpCircleIcon color={state.direction === 'UP' ? 'white' : 'grey'} height={42}/>
+                        <ArrowDownCircleIcon color={state.direction === 'DOWN' ? 'white' : 'grey'} height={42}/>
+                    </Box>
                 </Box>
             </Box>
         </>
