@@ -26,40 +26,14 @@ const DEFAULT_STATE: ElevatorState = {
     floorRequest: undefined,
 }
 
-// find the findClosest floor to the current floor without sort
+// find the closest floor in the array of floors
 const findClosest = (currentFloor: number, stopRequests: number[]): number => {
     return stopRequests.reduce(function (prev, curr) {
         return (Math.abs(curr - currentFloor) < Math.abs(prev - currentFloor) ? curr : prev);
     });
 }
 
-// move 'findClosest' to the first item in the array
-// const closestIndex = updatedDestinations.indexOf(findClosest);
-// const moveItem = updatedDestinations.splice(closestIndex, 1)
-// updatedDestinations.splice(0, 0, moveItem[0])
-
-
-const compareNumbers = (a: number, b: number): number => {
-    return a - b;
-}
-
-// add a new stop to the destinations then make the findClosest floor the next stop
-// const optimizeStops = (state: ElevatorState, newStop: number): number[] => {
-//
-//     // add new request to the destination list
-//     const updatedDestinations = [...state.destinations, newStop];
-//     if (updatedDestinations.length === 1) return updatedDestinations;
-//
-//     // default to going up since we start in idle state on 1st floor
-//     if (state.direction === 'DOWN') {
-//         console.log('findClosest down', findClosest(state.currentFloor, updatedDestinations.filter(dest => dest < state.currentFloor)))
-//     } else {
-//         console.log('closets up', findClosest(state.currentFloor, updatedDestinations.filter(dest => dest > state.currentFloor)))
-//     }
-//
-//     return updatedDestinations.sort(compareNumbers)
-// }
-
+// filter down the destination list based on elevator direction
 const getNextStop = (direction: string | undefined, currentFloor: number, destinations: number[]): number => {
 
     if (destinations.length === 1) return destinations[0];
@@ -81,10 +55,9 @@ function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
 
             const updatedDestinations = [...state.destinations, action.floorRequest];
 
-            // find the next closest stop -> use current direction if possible
+            // find the next closest stop using current direction
             const nextStop = getNextStop(state.direction, state.currentFloor, updatedDestinations)
 
-            setTimeout(() => console.log('request waiting...'), 2000); // todo: remove
             return {
                 ...state,
                 floorRequest: 0,
@@ -96,50 +69,42 @@ function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
         case 'MOVE': {
             if (state.destinations?.length == 0) return state;
 
-            console.log('MOVE', state)
-
+            // set current floor to next stop  and remove from destination list
             const currentFloor: number = state.nextStop || state.currentFloor; // default back to the floor you are on
             const updatedDestinations = state.destinations.filter(dest => dest !== currentFloor)
 
+            // turn around and go the other way! (UP | DOWN)
             let direction = state.direction;
             if (state.destinations.length > 0
                 && state.direction == 'UP'
                 && state.destinations.filter(dest => dest > currentFloor).length === 0) {
                 direction = 'DOWN'
             }
-
             if (state.destinations.length > 0
                 && state.direction == 'DOWN'
                 && state.destinations.filter(dest => dest < currentFloor).length === 0) {
                 direction = 'UP'
             }
 
-            console.log('next stop direction', direction)
             const nextStop = updatedDestinations.length === 0 ? undefined : getNextStop(direction, currentFloor, updatedDestinations)
-            console.log('next stop', nextStop)
 
-            const foo = {
+            return {
                 ...state,
-                direction: state.currentFloor === currentFloor ? 'IDLE' : direction,
+                direction: state.currentFloor === currentFloor ? undefined: direction,
                 currentFloor: currentFloor,
                 nextStop: nextStop,
                 destinations: updatedDestinations,
             }
-
-            console.log('END MOVE', foo)
-            return foo;
         }
-
         case 'ARRIVED': {
 
+            // go into waiting if there are no more stops
             if (state.destinations.length === 0) {
-                console.log('no destinations waiting for here...')
                 return {...state, nextStop: undefined, direction: undefined};
             }
 
             return state
         }
-
         default: {
             return state;
         }
