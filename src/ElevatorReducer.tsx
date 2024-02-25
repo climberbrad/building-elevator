@@ -1,7 +1,8 @@
 import './App.css'
 import {Box, Button, Grid, Typography} from "@mui/material";
-import {useEffect, useReducer} from "react";
+import {useEffect, useReducer, useRef} from "react";
 import {ArrowUpCircleIcon, ArrowDownCircleIcon} from "@heroicons/react/20/solid";
+import {Building} from "./building/Building.tsx";
 
 const NUM_FLOORS = 12;
 const WINDOWS_PER_FLOOR = 7;
@@ -9,27 +10,31 @@ const BUTTONS_PER_ROW = 4;
 
 interface ElevatorState {
     type: string;
-    direction: string;
+    direction: string | undefined;
     currentFloor: number;
     destinations: number[];
-    request: number | undefined;
+    nextStop: number | undefined;
+    floorRequest: number | undefined;
 }
 
 const DEFAULT_STATE: ElevatorState = {
     type: 'IDLE',
-    direction: 'IDLE',
+    direction: undefined,
     currentFloor: 1,
     destinations: [],
-    request: undefined,
+    nextStop: undefined,
+    floorRequest: undefined,
 }
 
-// find the closest floor to the current floor without sort
-// const closest = updatedDestinations.reduce(function (prev, curr) {
-//     return (Math.abs(curr - state.currentFloor) < Math.abs(prev - state.currentFloor) ? curr : prev);
-// });
+// find the findClosest floor to the current floor without sort
+const findClosest = (currentFloor: number, stopRequests: number[]): number => {
+    return stopRequests.reduce(function (prev, curr) {
+        return (Math.abs(curr - currentFloor) < Math.abs(prev - currentFloor) ? curr : prev);
+    });
+}
 
-// move 'closest' to the first item in the array
-// const closestIndex = updatedDestinations.indexOf(closest);
+// move 'findClosest' to the first item in the array
+// const closestIndex = updatedDestinations.indexOf(findClosest);
 // const moveItem = updatedDestinations.splice(closestIndex, 1)
 // updatedDestinations.splice(0, 0, moveItem[0])
 
@@ -38,17 +43,33 @@ const compareNumbers = (a: number, b: number): number => {
     return a - b;
 }
 
-// add a new stop to the destinations then make the closest floor the next stop
-const optimizeStops = (state: ElevatorState, newStop: number): number[] => {
+// add a new stop to the destinations then make the findClosest floor the next stop
+// const optimizeStops = (state: ElevatorState, newStop: number): number[] => {
+//
+//     // add new request to the destination list
+//     const updatedDestinations = [...state.destinations, newStop];
+//     if (updatedDestinations.length === 1) return updatedDestinations;
+//
+//     // default to going up since we start in idle state on 1st floor
+//     if (state.direction === 'DOWN') {
+//         console.log('findClosest down', findClosest(state.currentFloor, updatedDestinations.filter(dest => dest < state.currentFloor)))
+//     } else {
+//         console.log('closets up', findClosest(state.currentFloor, updatedDestinations.filter(dest => dest > state.currentFloor)))
+//     }
+//
+//     return updatedDestinations.sort(compareNumbers)
+// }
 
-    // add new request to the destination list
-    const updatedDestinations = [...state.destinations, newStop];
-    if (updatedDestinations.length === 1) return updatedDestinations;
+const getNextStop = (direction: string | undefined, currentFloor: number, destinations: number[]): number => {
 
-    const orderedList = updatedDestinations.sort(compareNumbers)
-    console.log(orderedList)
+    if (destinations.length === 1) return destinations[0];
 
-    return orderedList;
+    if (direction === undefined) return findClosest(currentFloor, destinations);
+
+    return direction === 'DOWN' ?
+        findClosest(currentFloor, destinations.filter(dest => dest < currentFloor))
+        :
+        findClosest(currentFloor, destinations.filter(dest => dest > currentFloor))
 }
 
 // state machine for elevator events
@@ -56,26 +77,69 @@ function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
 
     switch (action.type) {
         case 'FLOOR_REQUEST': {
-            if (!action.request) return state;
+            if (!action.floorRequest) return state;
 
-            // reshuffle the destination array so the closest stop is the first item
-            const updatedDestinations: number[] = optimizeStops(state, action.request)
+            const updatedDestinations = [...state.destinations, action.floorRequest];
 
-            return {...state, request: 0, destinations: updatedDestinations};
-        }
-        case 'MOVE': {
-            const updatedDestinations: number[] = [...state.destinations]
-            const currentFloor = updatedDestinations.splice(0, 1)
+            // find the next closest stop -> use current direction if possible
+            const nextStop = getNextStop(state.direction, state.currentFloor, updatedDestinations)
 
-            // if (currentFloor.length === 0) return state;
-
+            setTimeout(() => console.log('request waiting...'), 2000); // todo: remove
             return {
                 ...state,
-                direction: state.currentFloor < currentFloor[0] ? 'UP' : 'DOWN',
-                currentFloor: currentFloor[0],
-                destinations: [...updatedDestinations]
-            }
+                floorRequest: 0,
+                direction: state.currentFloor < nextStop ? 'UP' : 'DOWN',
+                nextStop: nextStop,
+                destinations: updatedDestinations
+            };
         }
+        case 'MOVE': {
+            if (state.destinations?.length == 0) return state;
+
+            console.log('MOVE', state)
+
+            const currentFloor: number = state.nextStop || state.currentFloor; // default back to the floor you are on
+            const updatedDestinations = state.destinations.filter(dest => dest !== currentFloor)
+
+            let direction = state.direction;
+            if (state.destinations.length > 0
+                && state.direction == 'UP'
+                && state.destinations.filter(dest => dest > currentFloor).length === 0) {
+                direction = 'DOWN'
+            }
+
+            if (state.destinations.length > 0
+                && state.direction == 'DOWN'
+                && state.destinations.filter(dest => dest < currentFloor).length === 0) {
+                direction = 'UP'
+            }
+
+            console.log('next stop direction', direction)
+            const nextStop = updatedDestinations.length === 0 ? undefined : getNextStop(direction, currentFloor, updatedDestinations)
+            console.log('next stop', nextStop)
+
+            const foo = {
+                ...state,
+                direction: state.currentFloor === currentFloor ? 'IDLE' : direction,
+                currentFloor: currentFloor,
+                nextStop: nextStop,
+                destinations: updatedDestinations,
+            }
+
+            console.log('END MOVE', foo)
+            return foo;
+        }
+
+        case 'ARRIVED': {
+
+            if (state.destinations.length === 0) {
+                console.log('no destinations waiting for here...')
+                return {...state, nextStop: undefined, direction: undefined};
+            }
+
+            return state
+        }
+
         default: {
             return state;
         }
@@ -84,54 +148,29 @@ function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
 
 export function ElevatorReducer() {
     const [state, dispatch] = useReducer(reducer, DEFAULT_STATE);
+    const interval = useRef<number>();
 
     // listen for destination changes and dispatch move events
     useEffect(() => {
-        if (state.destinations.length === 0) return
+        clearTimeout(interval.current);
+        interval.current = setInterval(() => {
+            if (state.destinations.length > 0) {
+                dispatch({...state, type: 'MOVE'});
+                dispatch({...state, type: 'ARRIVED'});
+            }
+        }, 2000);
 
-        const moveFloors = setTimeout(() => {
-            dispatch({...state, type: 'MOVE'})
-        }, 1000) // todo: change to floorDelta * 10
-        return () => clearTimeout(moveFloors)
+        // setTimeout(() => dispatch({...state, type: 'MOVE'}), 2000);
+        // setTimeout(() => dispatch({...state, type: 'ARRIVED'}), 2000);
 
     }, [state.destinations]);
 
 
     // Add the request to the list of destination
     const handleClickButton = async (floor: number) => {
-        dispatch({...state, type: "FLOOR_REQUEST", request: floor});
+        dispatch({...state, type: "FLOOR_REQUEST", floorRequest: floor});
     }
 
-    const Building = ({numFloors}: { numFloors: number }): React.ReactElement => {
-        return (<Box sx={{display: 'flex', flexDirection: 'column-reverse'}}>
-            {Array(numFloors).fill(null).map((_, index) =>
-                <FloorWindows key={index} floor={index + 1}/>
-            )}
-        </Box>)
-    }
-
-    const getWindowColor = (floor: number, windowIndex: number): string => {
-        if (state.type === 'ARRIVED'
-            && state.currentFloor === floor
-            && windowIndex === 3) return 'green';
-
-        return state.currentFloor === floor && windowIndex === 3 ? 'black' : 'white';
-    }
-
-    const FloorWindows = ({floor}: { floor: number }): React.ReactElement => {
-        return (<Box sx={{display: 'flex'}}>
-            {Array(WINDOWS_PER_FLOOR).fill(null).map((_, index) =>
-                <Box key={index} sx={{margin: 1}}>
-                    <Box sx={{
-                        border: 1,
-                        backgroundColor: getWindowColor(floor, index),
-                        height: 24,
-                        width: 14
-                    }}/>
-                </Box>
-            )}
-        </Box>)
-    }
 
     const ButtonPanel = (): React.ReactElement => {
         return (
@@ -182,8 +221,9 @@ export function ElevatorReducer() {
     return (
         <>
             <Box sx={{display: 'flex', gap: 8}}>
-                <Box sx={{display: 'flex'}}>
-                    <Building numFloors={NUM_FLOORS}/>
+                <Box sx={{display: 'flex', border: 0.5, borderColor: '#C0C0C0'}}>
+                    <Building numFloors={NUM_FLOORS} windowsPerFloor={WINDOWS_PER_FLOOR}
+                              currentFloor={state.currentFloor}/>
                 </Box>
                 <Box>
                     <Typography marginY={2} fontSize={24}>Push my buttons!</Typography>
