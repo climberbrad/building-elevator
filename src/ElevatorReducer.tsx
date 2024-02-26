@@ -26,24 +26,27 @@ const DEFAULT_STATE: ElevatorState = {
     floorRequest: undefined,
 }
 
-// find the closest floor in the array of floors
-const findClosest = (currentFloor: number, stopRequests: number[]): number => {
-    return stopRequests.reduce(function (prev, curr) {
-        return (Math.abs(curr - currentFloor) < Math.abs(prev - currentFloor) ? curr : prev);
-    });
-}
+// find the closest floor in the array of floors, first search using the current direction, then default to finding the closest
+const findClosest = (currentFloor: number, stopRequests: number[], direction: string | undefined): number => {
+    if (stopRequests.length === 0) return currentFloor;
+    if (stopRequests.length === 1) return stopRequests[0]
 
-// filter down the destination list based on elevator direction
-const getNextStop = (direction: string | undefined, currentFloor: number, destinations: number[]): number => {
+    const closest = stopRequests
+        .reduce(function (prev, curr) {
+            return (Math.abs(curr - currentFloor) < Math.abs(prev - currentFloor) ? curr : prev);
+        });
 
-    if (destinations.length === 1) return destinations[0];
+    if (direction === undefined) return closest
 
-    if (direction === undefined) return findClosest(currentFloor, destinations);
+    const directionalDestinations = stopRequests
+        .filter(floor => direction === 'UP' ? floor > currentFloor : floor < currentFloor)
 
-    return direction === 'DOWN' ?
-        findClosest(currentFloor, destinations.filter(dest => dest < currentFloor))
-        :
-        findClosest(currentFloor, destinations.filter(dest => dest > currentFloor))
+    // return the closest stop in the current direction or the closest in either direction
+    return directionalDestinations.length > 0 ? directionalDestinations
+            .reduce(function (prev, curr) {
+                return (Math.abs(curr - currentFloor) < Math.abs(prev - currentFloor) ? curr : prev);
+            })
+        : closest;
 }
 
 // state machine for elevator events
@@ -54,9 +57,7 @@ function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
             if (!action.floorRequest) return state;
 
             const updatedDestinations = [...state.destinations, action.floorRequest];
-
-            // find the next closest stop using current direction
-            const nextStop = getNextStop(state.direction, state.currentFloor, updatedDestinations)
+            const nextStop = findClosest(state.currentFloor, updatedDestinations, state.direction)
 
             return {
                 ...state,
@@ -73,24 +74,11 @@ function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
             const currentFloor: number = state.nextStop || state.currentFloor; // default back to the floor you are on
             const updatedDestinations = state.destinations.filter(dest => dest !== currentFloor)
 
-            // turn around and go the other way! (UP | DOWN)
-            let direction = state.direction;
-            if (state.destinations.length > 0
-                && state.direction == 'UP'
-                && state.destinations.filter(dest => dest > currentFloor).length === 0) {
-                direction = 'DOWN'
-            }
-            if (state.destinations.length > 0
-                && state.direction == 'DOWN'
-                && state.destinations.filter(dest => dest < currentFloor).length === 0) {
-                direction = 'UP'
-            }
-
-            const nextStop = updatedDestinations.length === 0 ? undefined : getNextStop(direction, currentFloor, updatedDestinations)
+            const nextStop = findClosest(currentFloor, updatedDestinations, state.direction)
 
             return {
                 ...state,
-                direction: state.currentFloor === currentFloor ? undefined: direction,
+                direction: state.currentFloor < nextStop ? 'UP' : 'DOWN',
                 currentFloor: currentFloor,
                 nextStop: nextStop,
                 destinations: updatedDestinations,
@@ -115,7 +103,7 @@ export function ElevatorReducer() {
     const [state, dispatch] = useReducer(reducer, DEFAULT_STATE);
     const interval = useRef<number>();
 
-    // listen for destination changes and dispatch move events
+    // listen for changes to state.destinations, then dispatch move events
     useEffect(() => {
         clearTimeout(interval.current);
         interval.current = setInterval(() => {
@@ -125,13 +113,10 @@ export function ElevatorReducer() {
             }
         }, 2000);
 
-        // setTimeout(() => dispatch({...state, type: 'MOVE'}), 2000);
-        // setTimeout(() => dispatch({...state, type: 'ARRIVED'}), 2000);
-
     }, [state.destinations]);
 
 
-    // Add the request to the list of destination
+    // Add a new floor request
     const handleClickButton = async (floor: number) => {
         dispatch({...state, type: "FLOOR_REQUEST", floorRequest: floor});
     }
