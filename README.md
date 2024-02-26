@@ -33,6 +33,8 @@ a game with the core of it using a state machine. I think it worked well for the
 logic in the state machine and in those code blocks I was able to contextualize what was happening in the app at that moment.
 
 ## The Game
+The game is hosted on Vercel. You can play it here:
+https://building-elevator.vercel.app/
 
 ![img.png](img.png)
 
