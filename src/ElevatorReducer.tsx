@@ -3,6 +3,7 @@ import {Box, Button, Grid, Typography} from "@mui/material";
 import {useEffect, useReducer, useRef} from "react";
 import {ArrowUpCircleIcon, ArrowDownCircleIcon} from "@heroicons/react/20/solid";
 import {Building} from "./building/Building.tsx";
+import {findClosest} from "./util/ElevatorUtil.ts";
 
 const NUM_FLOORS = 12;
 const WINDOWS_PER_FLOOR = 7;
@@ -26,28 +27,7 @@ const DEFAULT_STATE: ElevatorState = {
     floorRequest: undefined,
 }
 
-// find the closest floor in the array of floors, first search using the current direction, then default to finding the closest
-const findClosest = (currentFloor: number, stopRequests: number[], direction: string | undefined): number => {
-    if (stopRequests.length === 0) return currentFloor;
-    if (stopRequests.length === 1) return stopRequests[0]
 
-    const closest = stopRequests
-        .reduce(function (prev, curr) {
-            return (Math.abs(curr - currentFloor) < Math.abs(prev - currentFloor) ? curr : prev);
-        });
-
-    if (direction === undefined) return closest
-
-    const directionalDestinations = stopRequests
-        .filter(floor => direction === 'UP' ? floor > currentFloor : floor < currentFloor)
-
-    // return the closest stop in the current direction or the closest in either direction
-    return directionalDestinations.length > 0 ? directionalDestinations
-            .reduce(function (prev, curr) {
-                return (Math.abs(curr - currentFloor) < Math.abs(prev - currentFloor) ? curr : prev);
-            })
-        : closest;
-}
 
 // state machine for elevator events
 function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
@@ -101,7 +81,7 @@ function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
 
 export function ElevatorReducer() {
     const [state, dispatch] = useReducer(reducer, DEFAULT_STATE);
-    const interval = useRef<number>();
+    const interval = useRef<NodeJS.Timeout>();
 
     // listen for changes to state.destinations, then dispatch move events
     useEffect(() => {
