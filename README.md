@@ -23,8 +23,8 @@ This project is built with `yarn | vite | React | Typescript`
 To start the web app you should be able to do a `yarn install` followed by `yarn dev`. Then open a browser to `http://localhost:5173/`
 
 ## Tests
-The tests can be run from the command line or from your IDE. They are located here [Tests](src/ElevatorReducer.test.ts)
-`yarn run test` will run them from the command line.
+The tests can be run from the command line (`yarn run test`) or from your IDE. They are located here [Tests](src/ElevatorReducer.test.ts)
+
 
 ## Code
 This React/TypeScript project was built relying heavily on the `useReducer` React Hook as a state machine. I did this
