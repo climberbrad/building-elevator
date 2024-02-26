@@ -1,7 +1,7 @@
 # Elevator Game!
 
 This project simulates a building elevator. It displays a building on the left and a button panel on the right.
-The elevator will respond to button clicks after a short delay. The delay is there to simuate a real elevator and 
+The elevator will respond to button clicks after a short delay. The delay is there to simulate a real elevator and 
 allow the user to press a few buttons before the elevator takes off. The elevator will then try to move in one 
 direction and exhaust all requests in that direction before turning in the opposite direction and completing
 those requests. You can play with this by selecting a few floors like 6,7,11,12 and then when the elevator
