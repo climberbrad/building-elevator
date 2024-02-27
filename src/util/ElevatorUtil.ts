@@ -22,20 +22,25 @@ export const findClosest = (currentFloor: number, stopRequests: number[], direct
 }
 
 export const findClosestBinarySearch = (currentFloor: number, destinations: number[]) => {
+    if(destinations.length === 0) return currentFloor;
     if(destinations.length === 1) return destinations[0];
 
-    destinations.sort((a, b) => a - b);
-    const middleIndex = Math.floor(destinations.length / 2);
-    const left: number[] = destinations.slice(0, middleIndex);
-    const right: number[] = destinations.slice(middleIndex, destinations.length)
+    // de-dup and sort destinations
+    const deDup = new Set(destinations)
+    const sortedDestinations = Array.from(deDup).sort((a, b) => a - b);
 
-    // less than or greater than anything in the destination list
+    // split the destination list in two
+    const middleIndex = Math.floor(sortedDestinations.length / 2);
+    const left: number[] = sortedDestinations.slice(0, middleIndex);
+    const right: number[] = sortedDestinations.slice(middleIndex, sortedDestinations.length)
+
+    // less than or greater than anything in either list
     if(currentFloor > right[right.length-1]) return right[right.length-1]
     if(currentFloor < left[0]) return left[0];
 
     // between left and right so check both
     if(currentFloor > left[left.length] && currentFloor < right[0]) {
-        return findClosest(currentFloor, destinations)
+        return findClosest(currentFloor, sortedDestinations)
     }
 
     // larger than anything on the left so check right
@@ -47,7 +52,7 @@ export const findClosestBinarySearch = (currentFloor: number, destinations: numb
         return findClosest(currentFloor, left)
     }
 
-    return findClosest(currentFloor, destinations)
+    return findClosest(currentFloor, sortedDestinations)
 }
 
 
