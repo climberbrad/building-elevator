@@ -8,13 +8,18 @@ those requests. You can play with this by selecting a few floors like 6,7,11,12 
 starts moving try adding 1,2,3 to the list. 
 
 There are a series of unit tests that allow you to try different sorting algorithms and will return an `ElevatorStat` object
-which contains the current floor, ordered list of destinations and the total time it will take to complete the requests. 
+which contains the current floor, ordered list of destinations and the total time it will take to complete the requests.
+
+A single test [findClosest in any direction with stat](src/SortingAlgo.test.ts) is the starting point if you are
+just looking to test logic purely around sending in an unsorted list of destinations (in any direction) and get back
+a stat object with the total time and destinations sorted by closest to the `currentFloor` followed by the closest to
+the next stop and so on.
 ```
 {
       currentFloor: 1,
       destinations: [2, 4, 6, 7, 8,12, 15, 19, 20, 24],
       totalTime: 230
-    }
+}
 ```
 
 This project is built with `yarn | vite | React | Typescript` 
