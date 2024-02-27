@@ -4,7 +4,7 @@ import {
     bubbleSort,
     getElevatorStatForSort,
     ElevatorStat,
-    findClosestAllFloors, travelTimeAnyDirection
+    findClosestForEachStop, travelTimeAnyDirection
 } from "./util/ElevatorUtil.ts";
 
 const DESTINATIONS_UNSORTED: number[] = [6, 7, 15, 12, 4, 8, 24, 2, 19, 20];
@@ -39,7 +39,7 @@ test('findClosest moves to closest in current direction', () => {
 test ('findClosest any direction for all floors with time', () =>  {
     const currentFloor = 12;
     const destinations = [2,9,1,32];
-    const stat = findClosestAllFloors(currentFloor, destinations, TRAVEL_TIME_PER_FLOOR)
+    const stat = findClosestForEachStop(currentFloor, destinations, TRAVEL_TIME_PER_FLOOR)
     console.log(stat)
 })
 

@@ -32,7 +32,7 @@ export const travelTimeAnyDirection = (currentFloor: number, destinations: numbe
     return sum;
 }
 
-export const findClosestAllFloors = (currentFloor: number, destinations: number[], timePerFloor: number): ElevatorStat => {
+export const findClosestForEachStop = (currentFloor: number, destinations: number[], timePerFloor: number): ElevatorStat => {
     const orderedDestinations: number[] = [currentFloor]; // seed with starting floor
 
     while (orderedDestinations.length < destinations.length + 1) {
