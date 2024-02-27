@@ -21,18 +21,37 @@ export const findClosest = (currentFloor: number, stopRequests: number[], direct
         : closest;
 }
 
-export const travelTime = (currentFloor: number, destinations: number[], timePerFloor: number) => {
+export const travelTimeAnyDirection = (currentFloor: number, destinations: number[], timePerFloor: number): number => {
+    let sum: number = Math.abs(Math.abs(currentFloor) - Math.abs(destinations[0])) * timePerFloor;
 
-    let totalTime: number = Math.abs(destinations[0] - currentFloor) * timePerFloor;
-    const orderedList = destinations.sort((a, b) => a - b)
-    for (let i = 0; i < orderedList.length - 1; i++) {
-        totalTime += (Math.abs(orderedList[i + 1]) - Math.abs(orderedList[i])) * timePerFloor;
+    for (let i = 0; i < destinations.length - 1; i++) {
+        const delta: number = Math.abs(Math.abs(destinations[i]) - Math.abs(destinations[i + 1])) * timePerFloor
+        sum += delta;
     }
 
-    return totalTime;
+    return sum;
 }
 
-export const quickSort = (destinations: number[]): number[]  => {
+export const findClosestAllFloors = (currentFloor: number, destinations: number[], timePerFloor: number): ElevatorStat => {
+    const orderedDestinations: number[] = [currentFloor]; // seed with starting floor
+
+    while (orderedDestinations.length < destinations.length + 1) {
+        const availableStops = destinations.filter(x => !orderedDestinations.includes(x))
+        const nextDest: number = findClosest(orderedDestinations[orderedDestinations.length - 1], availableStops)
+        orderedDestinations.push(nextDest)
+    }
+
+    // remove starting floor
+    const finalList = orderedDestinations.filter(x => x !== currentFloor)
+
+    return {
+        currentFloor: currentFloor,
+        destinations: finalList,
+        totalTime: travelTimeAnyDirection(currentFloor, finalList, timePerFloor),
+    }
+}
+
+export const quickSort = (destinations: number[]): number[] => {
     if (destinations.length <= 1) return destinations;
     const pivot = destinations[0]
 
@@ -65,9 +84,9 @@ export type ElevatorStat = {
     totalTime: number,
 }
 
-export const getElevatorStat = (currentFloor: number, unorderedDestinations: number[], sortList: (unorderedList: number[]) => number[], timePerFloor: number): ElevatorStat => {
+export const getElevatorStatForSort = (currentFloor: number, unorderedDestinations: number[], sortList: (unorderedList: number[]) => number[], timePerFloor: number): ElevatorStat => {
     const orderedList = sortList(unorderedDestinations)
-    const totalTime = travelTime(currentFloor, orderedList, timePerFloor)
+    const totalTime = travelTimeAnyDirection(currentFloor, orderedList, timePerFloor)
 
     return {
         currentFloor: currentFloor,
