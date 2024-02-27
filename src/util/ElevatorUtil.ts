@@ -21,6 +21,36 @@ export const findClosest = (currentFloor: number, stopRequests: number[], direct
         : closest;
 }
 
+export const findClosestBinarySearch = (currentFloor: number, destinations: number[]) => {
+    if(destinations.length === 1) return destinations[0];
+
+    destinations.sort((a, b) => a - b);
+    const middleIndex = Math.floor(destinations.length / 2);
+    const left: number[] = destinations.slice(0, middleIndex);
+    const right: number[] = destinations.slice(middleIndex, destinations.length)
+
+    // less than or greater than anything in the destination list
+    if(currentFloor > right[right.length-1]) return right[right.length-1]
+    if(currentFloor < left[0]) return left[0];
+
+    // between left and right so check both
+    if(currentFloor > left[left.length] && currentFloor < right[0]) {
+        return findClosest(currentFloor, destinations)
+    }
+
+    // larger than anything on the left so check right
+    if(currentFloor > right[0]) {
+        return findClosest(currentFloor, right)
+    }
+
+    if(currentFloor < left[left.length]) {
+        return findClosest(currentFloor, left)
+    }
+
+    return findClosest(currentFloor, destinations)
+}
+
+
 export const travelTimeAnyDirection = (currentFloor: number, destinations: number[], timePerFloor: number): number => {
     let sum: number = Math.abs(Math.abs(currentFloor) - Math.abs(destinations[0])) * timePerFloor;
 
@@ -37,7 +67,7 @@ export const findClosestForEachStop = (currentFloor: number, destinations: numbe
 
     while (orderedDestinations.length < destinations.length + 1) {
         const availableStops = destinations.filter(x => !orderedDestinations.includes(x))
-        const nextDest: number = findClosest(orderedDestinations[orderedDestinations.length - 1], availableStops)
+        const nextDest: number = findClosestBinarySearch(orderedDestinations[orderedDestinations.length - 1], availableStops)
         orderedDestinations.push(nextDest)
     }
 
