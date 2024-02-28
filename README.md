@@ -31,10 +31,12 @@ the binary sort will:
 This project is built with `yarn | vite | React | Typescript` 
 
 ## Build
-To start the web app you should be able to do a `yarn install` followed by `yarn dev`. Then open a browser to `http://localhost:5173/`
+To start the web app you should be able to do a `yarn install` followed by `yarn dev`. 
+Then open a browser to `http://localhost:5173/`
 
 ## Tests
-The tests can be run from the command line (`yarn run test`) or from your IDE. They are located here [Tests](src/ElevatorReducer.test.ts)
+The tests can be run from the command line (`yarn run test`) or from your IDE. 
+They are located here [Tests](src/util/SearchUtil.test.ts)
 
 
 ## Code

@@ -3,7 +3,7 @@ import {Box, Button, Grid, Typography} from "@mui/material";
 import {useEffect, useReducer, useRef} from "react";
 import {ArrowUpCircleIcon, ArrowDownCircleIcon} from "@heroicons/react/20/solid";
 import {Building} from "./building/Building.tsx";
-import {findClosest} from "./util/ElevatorUtil.ts";
+import {closestTo} from "./util/SearchUtil.ts";
 
 const NUM_FLOORS = 12;
 const WINDOWS_PER_FLOOR = 7;
@@ -27,25 +27,29 @@ const DEFAULT_STATE: ElevatorState = {
     floorRequest: undefined,
 }
 
-
 // state machine for elevator events
 function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
 
     switch (action.type) {
         case 'FLOOR_REQUEST': {
             if (!action.floorRequest) return state;
-
             const updatedDestinations = [...state.destinations, action.floorRequest];
-            const nextStop = findClosest(state.currentFloor, updatedDestinations, state.direction)
+
+            // if the elevator is IDLE then set the direction to give the
+            // user direct feedback (via the arrow) that the elevator is going somewhere soon
+            const direction: string = state.direction ? state.direction
+                : action.floorRequest > state.currentFloor ? 'UP' : 'DOWN';
 
             return {
                 ...state,
                 floorRequest: 0,
-                direction: state.currentFloor < nextStop ? 'UP' : 'DOWN',
-                nextStop: nextStop,
-                destinations: updatedDestinations
+                destinations: updatedDestinations,
+                direction: direction,
             };
         }
+
+        // TODO: Add travel time between floors after we simulate a moving elevator
+        // TODO: simulate moving so the user can see it is acting on the requests
         case 'MOVE': {
             if (state.destinations?.length == 0) return state;
 
@@ -53,7 +57,12 @@ function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
             const currentFloor: number = state.nextStop || state.currentFloor; // default back to the floor you are on
             const updatedDestinations = state.destinations.filter(dest => dest !== currentFloor)
 
-            const nextStop = findClosest(currentFloor, updatedDestinations, state.direction)
+            // filter destination list by the current direction of travel but default to any destination
+            const destByDirection = state.direction === 'UP' ?
+                updatedDestinations.filter(dest => dest > currentFloor)
+                : updatedDestinations.filter(dest => dest < currentFloor);
+
+            const nextStop = closestTo(currentFloor, destByDirection.length > 0 ? destByDirection : updatedDestinations)
 
             return {
                 ...state,
@@ -90,7 +99,7 @@ export function ElevatorReducer() {
                 dispatch({...state, type: 'MOVE'});
                 dispatch({...state, type: 'ARRIVED'});
             }
-        }, 2000);
+        }, 1000); // wait a sec for users to click a few floors
 
     }, [state.destinations]);
 
@@ -103,7 +112,7 @@ export function ElevatorReducer() {
 
     const ButtonPanel = (): React.ReactElement => {
         return (
-            <Box sx={{border:1, padding: 1}}>
+            <Box sx={{border: 1, padding: 1}}>
                 {Array(NUM_FLOORS / BUTTONS_PER_ROW).reverse().fill(null).map((_, index) =>
                     <ButtonRow key={index} floor={index + 1}/>
                 )}
@@ -117,7 +126,7 @@ export function ElevatorReducer() {
         return (
             <Grid container>
                 {Array(BUTTONS_PER_ROW).fill(null).map((_, index) =>
-                    <Grid item xs={6}>
+                    <Grid item xs={6} key={index}>
                         <ElevatorButton floor={(start + index)}/>
                     </Grid>
                 )}

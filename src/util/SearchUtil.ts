@@ -1,6 +1,11 @@
-// recurse down orderedList until there are two values left, then choose the closer value
-import {ElevatorStat} from "./ElevatorUtil.ts";
 
+export type ElevatorStat = {
+    currentFloor: number,
+    destinations: number[],
+    totalTime: number,
+}
+
+// recurse down orderedList until there are two values left, then choose the closer value
 function binarySearch(current: number, orderedList: number[]): number[] {
     const middleIndex: number = Math.floor(orderedList.length / 2);
 

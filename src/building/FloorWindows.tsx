@@ -17,6 +17,7 @@ export function FloorWindows({floor, windowsPerFloor, currentFloor}: FloorWindow
     for (let i = 0; i < windowsPerFloor; i++) {
         windows.push(
             <Grid item
+                  key={i}
                   sx={{
                       margin: '0.5vw',
                       border: 1,
