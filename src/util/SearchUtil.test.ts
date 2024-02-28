@@ -1,17 +1,24 @@
 import {closestTo, sortListToClosest, sortListToClosestWithTime} from "./SearchUtil.ts";
 
-test('Binary Search find closest lower', () => {
+test('Binary Search find closest', () => {
     const currentFloor: number = 6;
     const destinations: number[] = [1, 2, 3, 5, 8, 9, 10, 11, 12, 13, 14]
     const closest = closestTo(currentFloor, destinations)
     expect(closest).toEqual(5)
 })
 
-test('Binary Search find closest higher', () => {
+test('Binary Search find closest default higher', () => {
     const currentFloor: number = 6;
     const destinations: number[] = [1, 2, 3, 5, 7, 9, 10, 11, 12, 13, 14]
     const closest = closestTo(currentFloor, destinations)
     expect(closest).toEqual(7)
+})
+
+test('Binary Search de-dups', () => {
+    const currentFloor: number = 6;
+    const destinations: number[] = [1, 2, 3, 5, 7, 9, 2, 3, 1, 13, 14]
+    const closest = closestTo(currentFloor, destinations)
+    expect(closest).toEqual(5)
 })
 
 test('Binary Search single destination', () => {

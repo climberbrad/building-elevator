@@ -14,15 +14,9 @@ function binarySearch(current: number, orderedList: number[]): number[] {
 
     // keep splitting the array until there is only 2 items left
     if (orderedList.length > 2) {
-        // if(orderedList[middleIndex] > current) {
-        //     return binarySearch(current, orderedList.slice(0, middleIndex-1))
-        // } else {
-        //     return binarySearch(current, orderedList.slice(middleIndex, orderedList.length))
-        // }
-
-        if (current < orderedList[middleIndex]) {
+        if(orderedList[middleIndex] > current) {
             return binarySearch(current, orderedList.slice(0, middleIndex))
-        } else if (current > orderedList[middleIndex]) {
+        } else {
             return binarySearch(current, orderedList.slice(middleIndex, orderedList.length))
         }
     }
