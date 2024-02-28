@@ -22,5 +22,9 @@ export function Building({numFloors, windowsPerFloor, currentFloor}: BuildingPro
         )
     }
 
-    return (<Box sx={{display: 'flex', flexDirection: 'column-reverse'}}>{floor}</Box>)
+    return (
+        <Box sx={{display: 'flex', flexDirection: 'column-reverse'}}>
+            {floor}
+        </Box>
+    )
 }

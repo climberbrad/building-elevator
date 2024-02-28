@@ -7,7 +7,7 @@ import {findClosest} from "./util/ElevatorUtil.ts";
 
 const NUM_FLOORS = 12;
 const WINDOWS_PER_FLOOR = 7;
-const BUTTONS_PER_ROW = 4;
+const BUTTONS_PER_ROW = 2;
 
 interface ElevatorState {
     type: string;
@@ -103,7 +103,7 @@ export function ElevatorReducer() {
 
     const ButtonPanel = (): React.ReactElement => {
         return (
-            <Box sx={{border: 1, padding: 4}}>
+            <Box sx={{border:1, padding: 1}}>
                 {Array(NUM_FLOORS / BUTTONS_PER_ROW).reverse().fill(null).map((_, index) =>
                     <ButtonRow key={index} floor={index + 1}/>
                 )}
@@ -117,7 +117,7 @@ export function ElevatorReducer() {
         return (
             <Grid container>
                 {Array(BUTTONS_PER_ROW).fill(null).map((_, index) =>
-                    <Grid key={index} xs={6} md={3} item>
+                    <Grid item xs={6}>
                         <ElevatorButton floor={(start + index)}/>
                     </Grid>
                 )}
@@ -137,7 +137,7 @@ export function ElevatorReducer() {
                     borderRadius: 6,
                     borderColor: 'white',
                     backgroundColor: state.destinations.includes(floor) ? '#d8dce6' : '',
-                    margin: '1vw',
+                    marginY: '0.5vw',
                 }}>
                 <Typography color={state.destinations.includes(floor) ? '#eb4034' : 'white'} fontWeight='bolder'
                             fontSize={16}>{floor}</Typography>
@@ -146,22 +146,29 @@ export function ElevatorReducer() {
     }
 
     return (
-        <>
-            <Box sx={{display: 'flex', gap: 8}}>
-                <Box sx={{display: 'flex', border: 0.5, borderColor: '#C0C0C0'}}>
-                    <Building numFloors={NUM_FLOORS} windowsPerFloor={WINDOWS_PER_FLOOR}
-                              currentFloor={state.currentFloor}/>
-                </Box>
-                <Box>
-                    <Typography marginY={2} fontSize={24}>Push my buttons!</Typography>
-                    <ButtonPanel/>
-                    <Box sx={{display: 'flex', justifyContent: 'center', marginY: 2, gap: 1}}>
-                        <ArrowUpCircleIcon color={state.direction === 'UP' ? 'white' : 'grey'} height={42}/>
-                        <ArrowDownCircleIcon color={state.direction === 'DOWN' ? 'white' : 'grey'} height={42}/>
+        <Grid container>
+            <Grid item xs={4}>
+                <Building
+                    numFloors={NUM_FLOORS}
+                    windowsPerFloor={WINDOWS_PER_FLOOR}
+                    currentFloor={state.currentFloor}
+                />
+            </Grid>
+            <Grid item xs={8}>
+                <Box sx={{display: 'flex', flexDirection: 'column', width: '12rem'}}>
+                    <Box>
+
+                        <Typography marginY={1} fontSize={24}>Press Me</Typography>
+                        <ButtonPanel/>
+                        <Box sx={{display: 'flex', justifyContent: 'center', marginY: 1, gap: 1}}>
+                            <ArrowUpCircleIcon color={state.direction === 'UP' ? 'white' : 'grey'} height={42}/>
+                            <ArrowDownCircleIcon color={state.direction === 'DOWN' ? 'white' : 'grey'} height={42}/>
+                        </Box>
                     </Box>
+
                 </Box>
-            </Box>
-        </>
+            </Grid>
+        </Grid>
     )
 
 }

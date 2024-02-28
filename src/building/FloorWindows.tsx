@@ -1,5 +1,5 @@
 import React from "react";
-import {Box} from "@mui/material";
+import {Grid} from "@mui/material";
 
 interface FloorWindowsProps {
     floor: number,
@@ -16,16 +16,16 @@ export function FloorWindows({floor, windowsPerFloor, currentFloor}: FloorWindow
     const windows: React.ReactElement[] = [];
     for (let i = 0; i < windowsPerFloor; i++) {
         windows.push(
-            <Box key={i} sx={{margin: 1}}>
-                <Box sx={{
-                    border: 1,
-                    backgroundColor: getWindowColor(floor, i),
-                    height: 24,
-                    width: 14
-                }}/>
-            </Box>
+            <Grid item
+                  sx={{
+                      margin: '0.5vw',
+                      border: 1,
+                      backgroundColor: getWindowColor(floor, i),
+                      height: 24,
+                      width: 14
+                  }}/>
         )
     }
 
-    return (<Box sx={{display: 'flex'}}>{windows}</Box>)
+    return (<Grid container minWidth='24em'>{windows}</Grid>)
 }
