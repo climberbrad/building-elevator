@@ -28,7 +28,6 @@ const DEFAULT_STATE: ElevatorState = {
 }
 
 
-
 // state machine for elevator events
 function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
 
@@ -118,7 +117,7 @@ export function ElevatorReducer() {
         return (
             <Grid container>
                 {Array(BUTTONS_PER_ROW).fill(null).map((_, index) =>
-                    <Grid key={index} xs={3} item>
+                    <Grid key={index} xs={6} md={3} item>
                         <ElevatorButton floor={(start + index)}/>
                     </Grid>
                 )}
@@ -131,16 +130,14 @@ export function ElevatorReducer() {
             <Button
                 onClick={() => handleClickButton(floor)}
                 disabled={state.destinations.includes(floor) || state.currentFloor === floor}
+                size='medium'
                 sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
                     border: 1,
                     color: 'white',
                     borderRadius: 6,
                     borderColor: 'white',
                     backgroundColor: state.destinations.includes(floor) ? '#d8dce6' : '',
-                    margin: 1,
+                    margin: '1vw',
                 }}>
                 <Typography color={state.destinations.includes(floor) ? '#eb4034' : 'white'} fontWeight='bolder'
                             fontSize={16}>{floor}</Typography>
