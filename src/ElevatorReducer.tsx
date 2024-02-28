@@ -156,14 +156,14 @@ export function ElevatorReducer() {
 
     return (
         <Grid container>
-            <Grid item xs={4}>
+            <Grid item xs={4} md={6}>
                 <Building
                     numFloors={NUM_FLOORS}
                     windowsPerFloor={WINDOWS_PER_FLOOR}
                     currentFloor={state.currentFloor}
                 />
             </Grid>
-            <Grid item xs={8}>
+            <Grid item xs={8} md={6}>
                 <Box sx={{display: 'flex', flexDirection: 'column', width: '12rem'}}>
                     <Box>
 

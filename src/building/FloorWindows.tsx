@@ -1,5 +1,5 @@
 import React from "react";
-import {Grid} from "@mui/material";
+import {Box, Grid} from "@mui/material";
 
 interface FloorWindowsProps {
     floor: number,
@@ -28,5 +28,5 @@ export function FloorWindows({floor, windowsPerFloor, currentFloor}: FloorWindow
         )
     }
 
-    return (<Grid container minWidth='24em'>{windows}</Grid>)
+    return (<Grid container minWidth='24em'><Box sx={{display: 'flex', border: 1, borderColor: '#4e5052'}}>{windows}</Box></Grid>)
 }
