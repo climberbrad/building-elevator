@@ -7,17 +7,23 @@ direction and exhaust all requests in that direction before turning in the oppos
 those requests. You can play with this by selecting a few floors like 6,7,11,12 and then when the elevator
 starts moving try adding 1,2,3 to the list. 
 
-There are a series of unit tests that allow you to try different sorting algorithms and will return an `ElevatorStat` object
-which contains the current floor, ordered list of destinations and the total time it will take to complete the requests.
+### Algorithm
+To access the elevator algorithms you can run the [tests](src/util/SearchUtil.test.ts). There is a test `Return Stat for trip`
+that will list out the closest stops and the total time. (example output below). 
 
-A single test [findClosest in any direction with stat](src/SortingAlgo.test.ts) is the starting point if you are
-just looking to test logic purely around sending in an unsorted list of destinations (in any direction) and get back
-a stat object with the total time and destinations sorted by closest to the `currentFloor` followed by the closest to
-the next stop and so on.
+The core algorithm is a binary search. Given a starting floor, `currentFloor` and an unsorted array of `destinations`, 
+the binary sort will: 
+1. sort the array
+2. split the destinations array in half
+3. locate the half which `currentFloor` is contained in `(currentFloor < array[len] && currentFloor > array[0])`  
+4. recursively call itself with the smaller array and continue until `destinations` is only two items
+5. Once there are two items left we simply find the delta with `currentFloor` and return the closest.
+   (In a tie situation the default is to the lower floor)
+
 ```
 {
       currentFloor: 1,
-      destinations: [2, 4, 6, 7, 8,12, 15, 19, 20, 24],
+      destinations: [2, 4, 6, 7, 8, 12, 15, 19, 20, 24],
       totalTime: 230
 }
 ```

@@ -10,7 +10,7 @@ test('Binary Search find closest lower', () => {
 test('Binary Search find closest higher', () => {
     const currentFloor: number = 6;
     const destinations: number[] = [1, 2, 3, 5, 7, 9, 10, 11, 12, 13, 14]
-    const closest = closestTo(currentFloor, destinations, true)
+    const closest = closestTo(currentFloor, destinations)
     expect(closest).toEqual(7)
 })
 
@@ -35,25 +35,25 @@ test('Binary Search two higher destinations', () => {
     expect(closest).toEqual(11)
 })
 
+test('Binary Search currentFloor in exact middle of destinations default lower', () => {
+    const currentFloor: number = 6;
+    const destinations: number[] = [1,2,3,4,8,9,10,11]
+    const closest = closestTo(currentFloor, destinations)
+    expect(closest).toEqual(4)
+})
+
 test('Binary Search tie goes to higher number', () => {
     const currentFloor: number = 6;
     const destinations: number[] = [5,7]
-    const closest = closestTo(currentFloor, destinations, true)
+    const closest = closestTo(currentFloor, destinations)
     expect(closest).toEqual(7)
 })
 
-test('Binary Search tie goes to lower number', () => {
+test('Binary Search tie goes to higher number', () => {
     const currentFloor: number = 6;
     const destinations: number[] = [5,7]
-    const closest = closestTo(currentFloor, destinations, false)
-    expect(closest).toEqual(5)
-})
-
-test('Binary Search default to lower number', () => {
-    const currentFloor: number = 6;
-    const destinations: number[] = [5,7]
-    const closest = closestTo(currentFloor, destinations, false)
-    expect(closest).toEqual(5)
+    const closest = closestTo(currentFloor, destinations)
+    expect(closest).toEqual(7)
 })
 
 test('Sort entire list by closest starting with current', () => {
