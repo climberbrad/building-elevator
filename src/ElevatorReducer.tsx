@@ -11,20 +11,27 @@ const BUTTONS_PER_ROW = 2;
 
 interface ElevatorState {
     type: string;
-    direction: string | undefined;
     currentFloor: number;
     destinations: number[];
-    nextStop: number | undefined;
     floorRequest: number | undefined;
 }
 
 const DEFAULT_STATE: ElevatorState = {
     type: 'IDLE',
-    direction: undefined,
     currentFloor: 1,
     destinations: [],
-    nextStop: undefined,
     floorRequest: undefined,
+}
+
+const getNextStop = (currentFloor: number, destinations: number[]): number => {
+    return closestTo(currentFloor, destinations);
+}
+
+const getDirection = (currentFloor: number, destinations: number[]): string | undefined => {
+    if (destinations.length === 0) return undefined;
+
+    const nextStop = getNextStop(currentFloor, destinations);
+    return currentFloor < nextStop ? 'UP' : 'DOWN'
 }
 
 // state machine for elevator events
@@ -33,53 +40,55 @@ function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
     switch (action.type) {
         case 'FLOOR_REQUEST': {
             if (!action.floorRequest) return state;
+
             const updatedDestinations = [...state.destinations, action.floorRequest];
 
-            // if the elevator is IDLE then set the direction to give the
-            // user direct feedback (via the arrow) that the elevator is going somewhere soon
-            const direction: string = state.direction ? state.direction
-                : action.floorRequest > state.currentFloor ? 'UP' : 'DOWN';
-
-            return {
+            const foo = {
                 ...state,
-                floorRequest: 0,
+                type: 'FLOOR_REQUEST',
+                floorRequest: undefined,
                 destinations: updatedDestinations,
-                direction: direction,
             };
+
+            console.log('FLOOR_REQUEST', foo)
+            return foo
         }
 
-        // TODO: Add travel time between floors after we simulate a moving elevator
-        // TODO: simulate moving so the user can see it is acting on the requests
-        case 'MOVE': {
-            if (state.destinations?.length == 0) return state;
-
-            // set current floor to next stop  and remove from destination list
-            const currentFloor: number = state.nextStop || state.currentFloor; // default back to the floor you are on
-            const updatedDestinations = state.destinations.filter(dest => dest !== currentFloor)
-
-            // filter destination list by the current direction of travel but default to any destination
-            const destByDirection = state.direction === 'UP' ?
-                updatedDestinations.filter(dest => dest > currentFloor)
-                : updatedDestinations.filter(dest => dest < currentFloor);
-
-            const nextStop = closestTo(currentFloor, destByDirection.length > 0 ? destByDirection : updatedDestinations)
-
-            return {
-                ...state,
-                direction: state.currentFloor < nextStop ? 'UP' : 'DOWN',
-                currentFloor: currentFloor,
-                nextStop: nextStop,
-                destinations: updatedDestinations,
-            }
-        }
         case 'ARRIVED': {
+            if (state.currentFloor !== getNextStop(state.currentFloor, state.destinations)) return {...state}
+            if (state.destinations?.length == 0) return {...state};
+
+            const foo = {
+                ...state,
+                type: 'ARRIVED',
+                // nextStop: undefined,
+                destinations: state.destinations.filter(floor => floor !== state.currentFloor),
+            }
+
+            console.log('ARRIVED', foo)
+            return foo;
+        }
+        case 'MOVE': {
+            if (state.destinations.length === 0) return {...state}
+
+            const destinations = state.destinations;
+            const nextStop = closestTo(state.currentFloor, destinations)
+
+            console.log('move closest to', nextStop, 'curernt Floor', state.currentFloor, destinations)
 
             // go into waiting if there are no more stops
-            if (state.destinations.length === 0) {
-                return {...state, nextStop: undefined, direction: undefined};
+            if (state.destinations.length === 0) return {...state};
+
+            const foo = {
+                ...state,
+                type: 'MOVE',
+                // nextStop: nextStop,
+                currentFloor: nextStop > state.currentFloor ? state.currentFloor + 1 : state.currentFloor - 1,
             }
 
-            return state
+            console.log('MOVE', foo)
+            return foo
+
         }
         default: {
             return state;
@@ -91,15 +100,19 @@ export function ElevatorReducer() {
     const [state, dispatch] = useReducer(reducer, DEFAULT_STATE);
     const interval = useRef<NodeJS.Timeout>();
 
-    // listen for changes to state.destinations, then dispatch move events
+    // when state.destinations change, dispatch move events
     useEffect(() => {
-        clearTimeout(interval.current);
-        interval.current = setInterval(() => {
-            if (state.destinations.length > 0) {
+
+        console.log('useEffect', state)
+
+        if (state.destinations.length > 0) {
+            clearTimeout(interval.current)
+            interval.current = setInterval(() => {
                 dispatch({...state, type: 'MOVE'});
                 dispatch({...state, type: 'ARRIVED'});
-            }
-        }, 1000); // wait a sec for users to click a few floors
+
+            }, 1000);
+        }
 
     }, [state.destinations]);
 
@@ -108,7 +121,6 @@ export function ElevatorReducer() {
     const handleClickButton = async (floor: number) => {
         dispatch({...state, type: "FLOOR_REQUEST", floorRequest: floor});
     }
-
 
     const ButtonPanel = (): React.ReactElement => {
         return (
@@ -161,6 +173,7 @@ export function ElevatorReducer() {
                     numFloors={NUM_FLOORS}
                     windowsPerFloor={WINDOWS_PER_FLOOR}
                     currentFloor={state.currentFloor}
+                    state={state.type}
                 />
             </Grid>
             <Grid item xs={8} md={6}>
@@ -170,8 +183,12 @@ export function ElevatorReducer() {
                         <Typography marginY={1} fontSize={24}>Press Me</Typography>
                         <ButtonPanel/>
                         <Box sx={{display: 'flex', justifyContent: 'center', marginY: 1, gap: 1}}>
-                            <ArrowUpCircleIcon color={state.direction === 'UP' ? 'white' : 'grey'} height={42}/>
-                            <ArrowDownCircleIcon color={state.direction === 'DOWN' ? 'white' : 'grey'} height={42}/>
+                            <ArrowUpCircleIcon
+                                color={getDirection(state.currentFloor, state.destinations) === 'UP' ? 'white' : 'grey'}
+                                height={42}/>
+                            <ArrowDownCircleIcon
+                                color={getDirection(state.currentFloor, state.destinations) === 'DOWN' ? 'white' : 'grey'}
+                                height={42}/>
                         </Box>
                     </Box>
 
