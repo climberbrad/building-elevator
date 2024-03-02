@@ -32,7 +32,7 @@ export function binarySearch(current: number, orderedList: number[]): number[] {
         const leftDelta = Math.abs(current - orderedList[0]);
         const rightDelta = Math.abs(current - orderedList[1]);
 
-        // return lower value if left and right delta are equal
+        // default to lower if distance is equal
         if (leftDelta === rightDelta) return [orderedList[0]];
 
         // return the closest number as an array with length 1, tie goes to higher number
@@ -41,13 +41,20 @@ export function binarySearch(current: number, orderedList: number[]): number[] {
             : [orderedList[1]];
     }
 
-    // keep splitting the array until there is only 2 items left
-    // in a tie we prefer the lower number
+    const leftList =  orderedList.slice(0, middleIndex)
+    const rightList = orderedList.slice(middleIndex, orderedList.length)
+
     if (orderedList.length > 2) {
-        if (orderedList[middleIndex] > current) {
-            return binarySearch(current, orderedList.slice(0, middleIndex))
+        const leftEndDelta = Math.abs(leftList[leftList.length - 1] - current);
+        const rightStartDelta = Math.abs(rightList[0] - current);
+
+        // default to lower left
+        if(leftEndDelta === rightStartDelta) return binarySearch(current, leftList);
+
+        if(leftEndDelta < rightStartDelta) {
+            return binarySearch(current, leftList);
         } else {
-            return binarySearch(current, orderedList.slice(middleIndex, orderedList.length))
+            return binarySearch(current, rightList);
         }
     }
 
@@ -65,8 +72,8 @@ export const closestTo = (current: number, unorderedList: number[]): number => {
     // sort list
     const sortedList = Array.from(deDup).sort((a, b) => a - b);
 
-    const result: number[] = binarySearch(current, sortedList)
-    // const result: number[] = constantTimeSearch(current, sortedList)
+    // const result: number[] = binarySearch(current, sortedList)
+    const result: number[] = constantTimeSearch(current, sortedList)
 
     // return -1 if all goes wrong
     return result.length === 1 ? result[0] : -1;
