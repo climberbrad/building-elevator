@@ -1,4 +1,26 @@
-import {closestTo, sortListToClosest, sortListToClosestWithTime} from "./SearchUtil.ts";
+import {
+    closestTo,
+    sortListToClosest,
+    sortListToClosestWithTime
+} from "./SearchUtil.ts";
+
+
+// const findIt = (a: number, b: number[], search: (current: number, list: number[]) => number[]) => closestTo(a, b, search);
+//
+// const cases = [
+//     [6, [1, 2], constantTimeSearch, 2],
+//     [6, [1, 2], binarySearch, 2],
+// ];
+// test.each(cases)(
+//     "Search closest",
+//     (current, destinations, search, expected) => {
+//         const result = findIt(
+//             current as number,
+//             destinations as number[],
+//             search as (current: number, list: number[]) => number[])
+//         expect(result).toEqual(expected)
+//     }
+// )
 
 test('Binary Search find closest', () => {
     const currentFloor: number = 6;
@@ -7,11 +29,11 @@ test('Binary Search find closest', () => {
     expect(closest).toEqual(5)
 })
 
-test('Binary Search find closest default higher', () => {
+test('Binary Search find closest default lower', () => {
     const currentFloor: number = 6;
     const destinations: number[] = [1, 2, 3, 5, 7, 9, 10, 11, 12, 13, 14]
     const closest = closestTo(currentFloor, destinations)
-    expect(closest).toEqual(7)
+    expect(closest).toEqual(5)
 })
 
 test('Binary Search de-dups', () => {
@@ -49,18 +71,18 @@ test('Binary Search currentFloor in exact middle of destinations default lower',
     expect(closest).toEqual(4)
 })
 
-test('Binary Search tie goes to higher number', () => {
+test('Binary Search tie goes to lower number', () => {
     const currentFloor: number = 6;
     const destinations: number[] = [5,7]
     const closest = closestTo(currentFloor, destinations)
-    expect(closest).toEqual(7)
+    expect(closest).toEqual(5)
 })
 
-test('Binary Search tie goes to higher number', () => {
+test('Binary Search tie goes to lower number', () => {
     const currentFloor: number = 6;
     const destinations: number[] = [5,7]
     const closest = closestTo(currentFloor, destinations)
-    expect(closest).toEqual(7)
+    expect(closest).toEqual(5)
 })
 
 test('Sort entire list by closest starting with current', () => {
