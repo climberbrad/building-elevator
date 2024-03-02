@@ -5,12 +5,21 @@ interface FloorWindowsProps {
     floor: number,
     windowsPerFloor: number,
     currentFloor: number
+    state: string,
 }
 
-export function FloorWindows({floor, windowsPerFloor, currentFloor}: FloorWindowsProps): React.ReactElement {
+export function FloorWindows({floor, windowsPerFloor, currentFloor, state}: FloorWindowsProps): React.ReactElement {
 
     const getWindowColor = (floor: number, windowIndex: number): string => {
-        return currentFloor === floor && windowIndex === 3 ? 'black' : 'white';
+
+        // elevator
+        if (windowIndex === 3 && currentFloor === floor) {
+            if (state === 'IDLE' || state === 'ARRIVED') return 'black';
+
+            return 'grey'
+        }
+
+        return 'white';
     }
 
     const windows: React.ReactElement[] = [];
@@ -28,5 +37,6 @@ export function FloorWindows({floor, windowsPerFloor, currentFloor}: FloorWindow
         )
     }
 
-    return (<Grid container minWidth='24em'><Box sx={{display: 'flex', border: 1, borderColor: '#4e5052'}}>{windows}</Box></Grid>)
+    return (<Grid container minWidth='24em'><Box
+        sx={{display: 'flex', border: 1, borderColor: '#4e5052'}}>{windows}</Box></Grid>)
 }
