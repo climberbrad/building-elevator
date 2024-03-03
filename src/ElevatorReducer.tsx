@@ -90,9 +90,11 @@ export function ElevatorReducer() {
 
     // when state.destinations change, dispatch move events
     useEffect(() => {
+        console.log('useEffect()')
+        clearTimeout(interval.current)
         if (state.destinations.length > 0) {
-            clearTimeout(interval.current)
             interval.current = setInterval(() => {
+                console.log('interval...')
                 dispatch({...state, type: 'MOVE'});
                 dispatch({...state, type: 'ARRIVED'});
 
