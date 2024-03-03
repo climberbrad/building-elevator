@@ -13,12 +13,14 @@ interface ElevatorState {
     type: string;
     currentFloor: number;
     destinations: number[];
+    nextStop: number | undefined;
     floorRequest: number | undefined;
 }
 
 const DEFAULT_STATE: ElevatorState = {
     type: 'IDLE',
     currentFloor: 1,
+    nextStop: undefined,
     destinations: [],
     floorRequest: undefined,
 }
@@ -43,52 +45,38 @@ function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
 
             const updatedDestinations = [...state.destinations, action.floorRequest];
 
-            const foo = {
+            return {
                 ...state,
                 type: 'FLOOR_REQUEST',
                 floorRequest: undefined,
                 destinations: updatedDestinations,
             };
-
-            console.log('FLOOR_REQUEST', foo)
-            return foo
         }
 
         case 'ARRIVED': {
             if (state.currentFloor !== getNextStop(state.currentFloor, state.destinations)) return {...state}
             if (state.destinations?.length == 0) return {...state};
 
-            const foo = {
+            return {
                 ...state,
                 type: 'ARRIVED',
-                // nextStop: undefined,
+                nextStop: undefined,
                 destinations: state.destinations.filter(floor => floor !== state.currentFloor),
             }
-
-            console.log('ARRIVED', foo)
-            return foo;
         }
         case 'MOVE': {
+            // go into waiting if there are no more stops
             if (state.destinations.length === 0) return {...state}
 
             const destinations = state.destinations;
-            const nextStop = closestTo(state.currentFloor, destinations)
+            const nextStop = state.nextStop || closestTo(state.currentFloor, destinations)
 
-            console.log('move closest to', nextStop, 'curernt Floor', state.currentFloor, destinations)
-
-            // go into waiting if there are no more stops
-            if (state.destinations.length === 0) return {...state};
-
-            const foo = {
+            return {
                 ...state,
                 type: 'MOVE',
-                // nextStop: nextStop,
+                nextStop: nextStop,
                 currentFloor: nextStop > state.currentFloor ? state.currentFloor + 1 : state.currentFloor - 1,
             }
-
-            console.log('MOVE', foo)
-            return foo
-
         }
         default: {
             return state;
@@ -102,9 +90,6 @@ export function ElevatorReducer() {
 
     // when state.destinations change, dispatch move events
     useEffect(() => {
-
-        console.log('useEffect', state)
-
         if (state.destinations.length > 0) {
             clearTimeout(interval.current)
             interval.current = setInterval(() => {
