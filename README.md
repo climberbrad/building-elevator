@@ -1,24 +1,34 @@
 # Elevator Game!
 
 This project simulates a building elevator. It displays a building on the left and a button panel on the right.
-The elevator will respond to button clicks after a short delay. The delay is there to simulate a real elevator and 
-allow the user to press a few buttons before the elevator takes off. The elevator will then try to move in one 
-direction and exhaust all requests in that direction before turning in the opposite direction and completing
-those requests. You can play with this by selecting a few floors like 6,7,11,12 and then when the elevator
-starts moving try adding 1,2,3 to the list. 
+The elevator will respond to button clicks after a short delay. While it is moving it turns grey and when it arrives at the destination
+it turns black. You can request multiple floors or add floors while it is moving. Once it has set the next
+destination, it will travel to it before finding the next stop. The next stop is determined to be the closest to the current floor
+regardless of which direction it is in.
 
 ### Algorithm
 To access the elevator algorithms you can run the [tests](src/util/SearchUtil.test.ts). There is a test `Return Stat for trip`
 that will list out the closest stops and the total time. (example output below). 
 
-The core algorithm is a binary search. Given a starting floor, `currentFloor` and an unsorted array of `destinations`, 
-the binary sort will: 
-1. sort the array
-2. split the destinations array in half
-3. locate the half which `currentFloor` is contained in `(currentFloor < array[len] && currentFloor > array[0])`  
-4. recursively call itself with the smaller array and continue until `destinations` is only two items
-5. Once there are two items left we simply find the delta with `currentFloor` and return the closest.
-   (In a tie situation the default is to the lower floor)
+I have written two separate algorithms which both return the same results. Each has it's own merits.
+The first is a binary search and the second is constant time algorithm.
+
+> Binary Search
+1. Take in a list of destinations and the current floor
+2. Sort the list if destinations lowest -> highest
+3. Split the destination list in half (left and right)
+4. Find which is closer to current floor, either the last element of left or the first element of right
+5. Which ever list is closer calls this same function with the new list and current floor
+6. The process repeats until the destination list is two elements
+7. Determine which is the closer of the final two elements and return it
+
+> Constant Time Search
+1. Take a list of destinations and the current floor
+2. Create a new array by adding current floor and destination list 
+3. Sort the new list lowest -> highest
+4. Find the index of current floor
+5. Get the destinations on either side of current floor `list[current-1] list[current+1]`
+6. Determine which is the closer of the final two elements and return it
 
 ```
 {

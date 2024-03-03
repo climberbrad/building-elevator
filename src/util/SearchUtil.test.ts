@@ -4,24 +4,6 @@ import {
     sortListToClosestWithTime
 } from "./SearchUtil.ts";
 
-
-// const findIt = (a: number, b: number[], search: (current: number, list: number[]) => number[]) => closestTo(a, b, search);
-//
-// const cases = [
-//     [6, [1, 2], constantTimeSearch, 2],
-//     [6, [1, 2], binarySearch, 2],
-// ];
-// test.each(cases)(
-//     "Search closest",
-//     (current, destinations, search, expected) => {
-//         const result = findIt(
-//             current as number,
-//             destinations as number[],
-//             search as (current: number, list: number[]) => number[])
-//         expect(result).toEqual(expected)
-//     }
-// )
-
 test('find closest', () => {
     const currentFloor: number = 6;
     const destinations: number[] = [1, 2, 3, 5, 8, 9, 10, 11, 12, 13, 14]
@@ -112,3 +94,20 @@ test('Return Stat for trip', () => {
             totalTime: 420,
         })
 })
+
+// const findIt = (a: number, b: number[], search: (current: number, list: number[]) => number[]) => closestTo(a, b, search);
+//
+// const cases = [
+//     [6, [1, 2], constantTimeSearch, 2],
+//     [6, [1, 2], binarySearch, 2],
+// ];
+// test.each(cases)(
+//     "Search closest",
+//     (current, destinations, search, expected) => {
+//         const result = findIt(
+//             current as number,
+//             destinations as number[],
+//             search as (current: number, list: number[]) => number[])
+//         expect(result).toEqual(expected)
+//     }
+// )
