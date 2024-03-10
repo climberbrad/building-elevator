@@ -15,6 +15,7 @@ interface ElevatorState {
     destinations: number[];
     nextStop: number | undefined;
     floorRequest: number | undefined;
+    direction: string | undefined;
 }
 
 const DEFAULT_STATE: ElevatorState = {
@@ -23,17 +24,22 @@ const DEFAULT_STATE: ElevatorState = {
     nextStop: undefined,
     destinations: [],
     floorRequest: undefined,
+    direction: undefined,
 }
 
-const getNextStop = (currentFloor: number, destinations: number[]): number => {
-    return closestTo(currentFloor, destinations);
-}
+// use current direction if possible until you have exhausted all destinations in that direction
+const getNextStop = (currentFloor: number, destinations: number[], direction: string | undefined): number => {
+    if (direction === undefined) return closestTo(currentFloor, destinations);
 
-const getDirection = (currentFloor: number, destinations: number[]): string | undefined => {
-    if (destinations.length === 0) return undefined;
+    if (direction === 'UP' && destinations.filter(dest => dest > currentFloor).length > 0) {
+        return closestTo(currentFloor, destinations.filter(dest => dest > currentFloor));
+    }
 
-    const nextStop = getNextStop(currentFloor, destinations);
-    return currentFloor < nextStop ? 'UP' : 'DOWN'
+    if (direction === 'DOWN' && destinations.filter(dest => dest < currentFloor).length > 0) {
+        return closestTo(currentFloor, destinations.filter(dest => dest < currentFloor));
+    }
+
+    return closestTo(currentFloor, destinations)
 }
 
 // state machine for elevator events
@@ -54,7 +60,7 @@ function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
         }
 
         case 'ARRIVED': {
-            if (state.currentFloor !== getNextStop(state.currentFloor, state.destinations)) return {...state}
+            if (state.currentFloor !== state.nextStop) return {...state}
             if (state.destinations?.length == 0) return {...state};
 
             return {
@@ -69,13 +75,16 @@ function reducer(state: ElevatorState, action: ElevatorState): ElevatorState {
             if (state.destinations.length === 0) return {...state}
 
             const destinations = state.destinations;
-            const nextStop = state.nextStop || closestTo(state.currentFloor, destinations)
+            const nextStop = state.nextStop || getNextStop(state.currentFloor, destinations, state.direction)
+            const newFloor = nextStop > state.currentFloor ? state.currentFloor + 1 : state.currentFloor - 1;
+            const direction = nextStop > state.currentFloor ? 'UP' : 'DOWN';
 
             return {
                 ...state,
                 type: 'MOVE',
                 nextStop: nextStop,
-                currentFloor: nextStop > state.currentFloor ? state.currentFloor + 1 : state.currentFloor - 1,
+                currentFloor: newFloor,
+                direction: direction,
             }
         }
         default: {
@@ -90,11 +99,9 @@ export function ElevatorReducer() {
 
     // when state.destinations change, dispatch move events
     useEffect(() => {
-        console.log('useEffect()')
         clearTimeout(interval.current)
         if (state.destinations.length > 0) {
             interval.current = setInterval(() => {
-                console.log('interval...')
                 dispatch({...state, type: 'MOVE'});
                 dispatch({...state, type: 'ARRIVED'});
 
@@ -171,10 +178,10 @@ export function ElevatorReducer() {
                         <ButtonPanel/>
                         <Box sx={{display: 'flex', justifyContent: 'center', marginY: 1, gap: 1}}>
                             <ArrowUpCircleIcon
-                                color={getDirection(state.currentFloor, state.destinations) === 'UP' ? 'white' : 'grey'}
+                                color={state.direction === 'UP' ? 'white' : 'grey'}
                                 height={42}/>
                             <ArrowDownCircleIcon
-                                color={getDirection(state.currentFloor, state.destinations) === 'DOWN' ? 'white' : 'grey'}
+                                color={state.direction === 'DOWN' ? 'white' : 'grey'}
                                 height={42}/>
                         </Box>
                     </Box>
